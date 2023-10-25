@@ -18,6 +18,8 @@
     clippy::missing_panics_doc,
 )]
 
+use std::process::Output;
+
 use crate::nixpacks::{
     app::App,
     builder::{
@@ -111,7 +113,7 @@ pub async fn create_docker_image(
     envs: Vec<&str>,
     plan_options: &GeneratePlanOptions,
     build_options: &DockerBuilderOptions,
-) -> Result<()> {
+) -> Result<Option<Output>> {
     let app = App::new(path)?;
     let environment = Environment::from_envs(envs)?;
     let orig_path = app.source.clone();
@@ -152,9 +154,9 @@ pub async fn create_docker_image(
         std::process::exit(1);
     }
 
-    builder
+    let output = builder
         .create_image(app.source.to_str().unwrap(), &plan, &environment)
         .await?;
 
-    Ok(())
+    Ok(output)
 }
