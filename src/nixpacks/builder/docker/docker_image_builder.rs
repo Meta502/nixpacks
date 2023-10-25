@@ -10,7 +10,7 @@ use crate::nixpacks::{
     logger::Logger,
     plan::BuildPlan,
 };
-use anyhow::{bail, Context, Ok, Result};
+use anyhow::{bail, Context, Ok, Result, anyhow};
 use std::{
     env,
     fs::{self, remove_dir_all, File},
@@ -42,7 +42,7 @@ use async_trait::async_trait;
 #[async_trait]
 impl ImageBuilder for DockerImageBuilder {
     /// Build a Docker image from a given BuildPlan and data from environment variables.
-    async fn create_image(&self, app_src: &str, plan: &BuildPlan, env: &Environment) -> Result<Option<Output>> {
+    async fn create_image(&self, app_src: &str, plan: &BuildPlan, env: &Environment) -> Result<Output> {
         let id = Uuid::new_v4();
 
         let output = get_output_dir(app_src, &self.options)?;
@@ -100,13 +100,13 @@ impl ImageBuilder for DockerImageBuilder {
                 remove_dir_all(output.root)?;
             }
 
-            return Ok(Some(build_result));
+            return Ok(build_result);
         } else {
             println!("\nSaved output to:");
             println!("{}", output.root.to_str().unwrap());
         }
 
-        Ok(None)
+        Err(anyhow!("Build command not executed"))
     }
 }
 

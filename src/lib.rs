@@ -113,7 +113,7 @@ pub async fn create_docker_image(
     envs: Vec<&str>,
     plan_options: &GeneratePlanOptions,
     build_options: &DockerBuilderOptions,
-) -> Result<Option<Output>> {
+) -> Result<Output> {
     let app = App::new(path)?;
     let environment = Environment::from_envs(envs)?;
     let orig_path = app.source.clone();

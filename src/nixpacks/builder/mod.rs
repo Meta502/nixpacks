@@ -14,5 +14,5 @@ pub trait ImageBuilder {
         app_source: &str,
         plan: &BuildPlan,
         env: &Environment,
-    ) -> Result<Option<Output>>;
+    ) -> Result<Output>;
 }
