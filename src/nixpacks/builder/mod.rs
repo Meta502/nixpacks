@@ -1,3 +1,5 @@
+use std::process::Output;
+
 use super::{environment::Environment, plan::BuildPlan};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -12,5 +14,5 @@ pub trait ImageBuilder {
         app_source: &str,
         plan: &BuildPlan,
         env: &Environment,
-    ) -> Result<()>;
+    ) -> Result<Option<Output>>;
 }

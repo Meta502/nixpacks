@@ -14,7 +14,7 @@ use anyhow::{bail, Context, Ok, Result};
 use std::{
     env,
     fs::{self, remove_dir_all, File},
-    process::Command,
+    process::{Command, Stdio, Output},
 };
 use tempdir::TempDir;
 use uuid::Uuid;
@@ -42,7 +42,7 @@ use async_trait::async_trait;
 #[async_trait]
 impl ImageBuilder for DockerImageBuilder {
     /// Build a Docker image from a given BuildPlan and data from environment variables.
-    async fn create_image(&self, app_src: &str, plan: &BuildPlan, env: &Environment) -> Result<()> {
+    async fn create_image(&self, app_src: &str, plan: &BuildPlan, env: &Environment) -> Result<Option<Output>> {
         let id = Uuid::new_v4();
 
         let output = get_output_dir(app_src, &self.options)?;
@@ -69,7 +69,7 @@ impl ImageBuilder for DockerImageBuilder {
         // If printing the Dockerfile, don't write anything to disk
         if self.options.print_dockerfile {
             println!("{dockerfile}");
-            return Ok(());
+            // return Ok(None);
         }
 
         self.write_app(app_src, &output).context("Writing app")?;
@@ -83,10 +83,7 @@ impl ImageBuilder for DockerImageBuilder {
             let mut docker_build_cmd = self.get_docker_build_cmd(plan, name.as_str(), &output)?;
 
             // Execute docker build
-            let build_result = docker_build_cmd.spawn()?.wait().context("Building image")?;
-            if !build_result.success() {
-                bail!("Docker build failed")
-            }
+            let build_result = docker_build_cmd.output()?;
 
             self.logger.log_section("Successfully Built!");
             println!("\nRun:");
@@ -102,12 +99,14 @@ impl ImageBuilder for DockerImageBuilder {
             if output.is_temp {
                 remove_dir_all(output.root)?;
             }
+
+            return Ok(Some(build_result));
         } else {
             println!("\nSaved output to:");
-            println!("  {}", output.root.to_str().unwrap());
+            println!("{}", output.root.to_str().unwrap());
         }
 
-        Ok(())
+        Ok(None)
     }
 }
 
@@ -124,6 +123,9 @@ impl DockerImageBuilder {
         output: &OutputDir,
     ) -> Result<Command> {
         let mut docker_build_cmd = Command::new("docker");
+
+        docker_build_cmd.stdout(Stdio::piped());
+        docker_build_cmd.stderr(Stdio::piped());
 
         if docker_build_cmd.output().is_err() {
             bail!("Please install Docker to build the app https://docs.docker.com/engine/install/")
