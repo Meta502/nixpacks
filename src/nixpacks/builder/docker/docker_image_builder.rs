@@ -83,7 +83,7 @@ impl ImageBuilder for DockerImageBuilder {
             let mut docker_build_cmd = self.get_docker_build_cmd(plan, name.as_str(), &output)?;
 
             // Execute docker build
-            let build_result = docker_build_cmd.output()?;
+            let build_result = docker_build_cmd.spawn()?.wait_with_output().context("Building image")?;
 
             self.logger.log_section("Successfully Built!");
             println!("\nRun:");
