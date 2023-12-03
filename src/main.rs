@@ -291,7 +291,7 @@ async fn main() -> Result<()> {
                 memory,
                 verbose,
             };
-            create_docker_image(&path, env, &options, build_options)?;
+            create_docker_image(&path, env, &options, build_options).await?;
         }
     }
 

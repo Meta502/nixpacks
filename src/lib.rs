@@ -108,7 +108,7 @@ pub fn get_plan_providers(
 }
 
 /// Builds a Docker image based on environment data and build options from config files or existing build plans.
-pub fn create_docker_image(
+pub async fn create_docker_image(
     path: &str,
     envs: Vec<&str>,
     plan_options: &GeneratePlanOptions,
@@ -155,7 +155,8 @@ pub fn create_docker_image(
     }
 
     let output = builder
-        .create_image(app.source.to_str().unwrap(), &plan, &environment)?;
+        .create_image(app.source.to_str().unwrap(), &plan, &environment)
+        .await?;
 
     Ok(output)
 }
