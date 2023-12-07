@@ -151,7 +151,7 @@ pub async fn create_docker_image(
             );
         }
 
-        std::process::exit(1);
+        Err(anyhow::anyhow!("No build plan could be generated"))?;
     }
 
     let output = builder
